@@ -23,10 +23,6 @@ void setup() {
   arduboy.clear();
   arduboy.setFrameRate(60);
 
-  for (uint16_t x = 17; x< 1024; x++) {
-    EEPROM.write(x, random(0,256));
-  }
-
 }
 
 void loop() {
@@ -113,16 +109,18 @@ void loop() {
 
 void printBinary(uint16_t location) {
 
-			sprintf(text, "%c%c%c%c %c%c%c%c",
-				(EEPROM.read(location) & 0x80) ? '1' : '0',
-				(EEPROM.read(location) & 0x40) ? '1' : '0',
-				(EEPROM.read(location) & 0x20) ? '1' : '0',
-				(EEPROM.read(location) & 0x10) ? '1' : '0',
-				(EEPROM.read(location) & 0x08) ? '1' : '0',
-				(EEPROM.read(location) & 0x04) ? '1' : '0',
-				(EEPROM.read(location) & 0x02) ? '1' : '0',
-				(EEPROM.read(location) & 0x01) ? '1' : '0'
-			);
+  uint8_t data = EEPROM.read(location);
+
+  sprintf(text, "%c%c%c%c %c%c%c%c",
+    (data & 0x80) ? '1' : '0',
+    (data & 0x40) ? '1' : '0',
+    (data & 0x20) ? '1' : '0',
+    (data & 0x10) ? '1' : '0',
+    (data & 0x08) ? '1' : '0',
+    (data & 0x04) ? '1' : '0',
+    (data & 0x02) ? '1' : '0',
+    (data & 0x01) ? '1' : '0'
+  );
 
   font4x6.print(text);
 
