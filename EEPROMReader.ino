@@ -1,6 +1,13 @@
+#define USE_AVR_EEPROM
+
 #include <Arduboy2.h>
 #include "src/Font4x6.h"
-#include <EEPROM.h>
+
+#ifdef USE_AVR_EEPROM
+  #include <avr/eeprom.h>
+#else
+  #include <EEPROM.h>
+#endif
 
 Arduboy2Base arduboy;
 Sprites sprite;
@@ -61,7 +68,13 @@ void loop() {
   for (int16_t x = eepromLocation - 12, y = 0; x < eepromLocation + 13; x++, y++) {
 
     uint16_t location = (x < 0 ? x + 1024 : (x > 1023 ? x - 1024 : x));
-    uint8_t val = EEPROM.read(location);
+
+    #ifdef USE_AVR_EEPROM
+      uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(location);
+      uint8_t val = eeprom_read_byte(eepromAddress);
+    #else
+      uint8_t val = EEPROM.read(location);
+    #endif
 
     switch (y / 5) {
 
@@ -128,7 +141,12 @@ void loop() {
 
       if (arduboy.justPressed(A_BUTTON))      { 
         mode = EditMode::Edit; 
-        origValue = EEPROM.read(eepromLocation); 
+        #ifdef USE_AVR_EEPROM
+          uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(eepromLocation);
+          origValue = eeprom_read_byte(static_cast<uint8_t *>(eepromAddress)); 
+        #else
+          origValue = EEPROM.read(eepromLocation); 
+        #endif
       }
 
       break;
@@ -161,7 +179,12 @@ void printDec(uint8_t data) {
 
 void printBinary(uint16_t location) {
 
-  uint8_t data = EEPROM.read(location);
+  #ifdef USE_AVR_EEPROM
+    uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(location);
+    uint8_t data = eeprom_read_byte(eepromAddress);
+  #else
+    uint8_t data = EEPROM.read(location);
+  #endif
 
   sprintf(text, "%c%c%c%c %c%c%c%c",
     (data & 0x80) ? '1' : '0',
@@ -180,14 +203,26 @@ void printBinary(uint16_t location) {
 
 void incValue() {
 
-  uint8_t data = EEPROM.read(eepromLocation);
-  EEPROM.update(eepromLocation, data + 1);
+  #ifdef USE_AVR_EEPROM
+    uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(eepromLocation);
+    uint8_t data = eeprom_read_byte(eepromAddress);
+    eeprom_update_byte(eepromAddress, data + 1);
+  #else
+    uint8_t data = EEPROM.read(eepromLocation);
+    EEPROM.update(eepromLocation, data + 1);
+  #endif
 
 }
 
 void decValue() {
 
-  uint8_t data = EEPROM.read(eepromLocation);
-  EEPROM.update(eepromLocation, data - 1);
+  #ifdef USE_AVR_EEPROM
+    uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(eepromLocation);
+    uint8_t data = eeprom_read_byte(eepromAddress);
+    eeprom_update_byte(eepromAddress, data - 1);
+  #else
+    uint8_t data = EEPROM.read(eepromLocation);
+    EEPROM.update(eepromLocation, data - 1);
+  #endif
   
 }
