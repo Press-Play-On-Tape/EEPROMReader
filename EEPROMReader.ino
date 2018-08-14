@@ -20,7 +20,8 @@ enum class EditMode : uint8_t {
 
 };
 
-char text[24];
+char text1[8];
+char text2[8];
 bool flash = false;
 uint8_t origValue;
 EditMode mode = EditMode::None;
@@ -48,6 +49,9 @@ void setup() {
 //  Loop away!
 //------------------------------------------------------------------------------
 
+#define SPACING_X 13
+#define SPACING_Y 8
+
 void loop() {
   
   if (!(arduboy.nextFrame())) return;
@@ -56,8 +60,8 @@ void loop() {
   arduboy.clear();
 
   arduboy.drawFastHLine(0, 10, WIDTH);
-  arduboy.drawFastHLine(0, 32, 71);
-  arduboy.drawFastHLine(0, 45, 71);
+  arduboy.drawFastHLine(0, 32, 64);
+  arduboy.drawFastHLine(0, 45, 64);
   arduboy.drawLine(71, 32, 79, 16, WHITE);
   arduboy.drawLine(71, 45, 79, 61, WHITE);
 
@@ -79,7 +83,7 @@ void loop() {
     switch (y / 5) {
 
       case 0 ... 1:
-        font4x6.setCursor(((y % 5) * 15) + 2, ((y / 5) * 8) + 14);
+        font4x6.setCursor(((y % 5) * SPACING_X) + 2, ((y / 5) * SPACING_Y) + 14);
         break;
 
       case 2:
@@ -88,7 +92,7 @@ void loop() {
 
           if (mode == EditMode::None || flash) {
 
-            arduboy.fillRect(((y % 5) * 15), ((y / 5) * 8) + 19, 13, 8, WHITE);
+            arduboy.fillRect(((y % 5) * SPACING_X), ((y / 5) * SPACING_Y) + 19, 13, 8, WHITE);
             font4x6.setTextColor(BLACK);
 
           }
@@ -100,11 +104,11 @@ void loop() {
 
         }
 
-        font4x6.setCursor(((y % 5) * 15) + 2, ((y / 5) * 8) + 19);
+        font4x6.setCursor(((y % 5) * SPACING_X) + 2, ((y / 5) * SPACING_Y) + 19);
         break;
 
       case 3 ... 4:
-        font4x6.setCursor(((y % 5) * 15) + 2, ((y / 5) * 8) + 24);
+        font4x6.setCursor(((y % 5) * SPACING_X) + 2, ((y / 5) * SPACING_Y) + 24);
         break;
 
     }
@@ -113,22 +117,25 @@ void loop() {
     
   }
 
-  font4x6.setCursor(83, 15);
-  printBinary(static_cast<uint16_t>(eepromLocation - 2));
-  font4x6.setCursor(83, 25);
-  printBinary(static_cast<uint16_t>(eepromLocation - 1));
 
-  arduboy.fillRect(81, 35, 22, 8, WHITE);
-  arduboy.fillRect(106, 35, 22, 8, WHITE);
+  printChar(75, 15, static_cast<uint16_t>(eepromLocation - 2));
+  printBinary(84, 15, static_cast<uint16_t>(eepromLocation - 2));
+
+  printChar(75, 25, static_cast<uint16_t>(eepromLocation - 1));
+  printBinary(84, 25, static_cast<uint16_t>(eepromLocation - 1));
+
+  arduboy.fillRect(74, 35, 6, 8, WHITE);
+  arduboy.fillRect(83, 35, 21, 8, WHITE);
+  arduboy.fillRect(107, 35, 21, 8, WHITE);
   font4x6.setTextColor(BLACK);
-  font4x6.setCursor(83, 35); 
-  printBinary(static_cast<uint16_t>(eepromLocation));
+  printChar(75, 35, static_cast<uint16_t>(eepromLocation));
+  printBinary(84, 35, static_cast<uint16_t>(eepromLocation));
   font4x6.setTextColor(WHITE);
 
-  font4x6.setCursor(83, 45);
-  printBinary(static_cast<uint16_t>(eepromLocation + 1));
-  font4x6.setCursor(83, 55);
-  printBinary(static_cast<uint16_t>(eepromLocation + 2));
+  printChar(75, 45, static_cast<uint16_t>(eepromLocation + 1));
+  printBinary(84, 45, static_cast<uint16_t>(eepromLocation + 1));
+  printChar(75, 55, static_cast<uint16_t>(eepromLocation + 2));
+  printBinary(84, 55, static_cast<uint16_t>(eepromLocation + 2));
 
 
   switch (mode) {
@@ -177,7 +184,7 @@ void printDec(uint8_t data) {
 }
 
 
-void printBinary(uint16_t location) {
+void printChar(uint8_t x, uint8_t y, uint16_t location) {
 
   #ifdef USE_AVR_EEPROM
     uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(location);
@@ -186,18 +193,38 @@ void printBinary(uint16_t location) {
     uint8_t data = EEPROM.read(location);
   #endif
 
-  sprintf(text, "%c%c%c%c %c%c%c%c",
+  font4x6.setCursor(x, y); 
+  font4x6.print((char)data);
+
+}
+
+void printBinary(uint8_t x, uint8_t y, uint16_t location) {
+
+  #ifdef USE_AVR_EEPROM
+    uint8_t * eepromAddress = reinterpret_cast<uint8_t *>(location);
+    uint8_t data = eeprom_read_byte(eepromAddress);
+  #else
+    uint8_t data = EEPROM.read(location);
+  #endif
+
+  sprintf(text1, "%c%c%c%c",
     (data & 0x80) ? '1' : '0',
     (data & 0x40) ? '1' : '0',
     (data & 0x20) ? '1' : '0',
-    (data & 0x10) ? '1' : '0',
+    (data & 0x10) ? '1' : '0'
+  );
+
+  sprintf(text2, "%c%c%c%c",
     (data & 0x08) ? '1' : '0',
     (data & 0x04) ? '1' : '0',
     (data & 0x02) ? '1' : '0',
     (data & 0x01) ? '1' : '0'
   );
 
-  font4x6.print(text);
+  font4x6.setCursor(x, y); 
+  font4x6.print(text1);
+  font4x6.setCursor(x + 24, y); 
+  font4x6.print(text2);
 
 }
 

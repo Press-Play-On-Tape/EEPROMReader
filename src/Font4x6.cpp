@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <Sprites.h>
 #include <Print.h>
 #include "Font4x6.h"
