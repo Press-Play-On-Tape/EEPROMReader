@@ -40,7 +40,7 @@ void setup() {
   arduboy.flashlight();
   arduboy.systemButtons();
   arduboy.clear();
-  arduboy.setFrameRate(60);
+  arduboy.setFrameRate(15);
 
 }
 
@@ -60,10 +60,10 @@ void loop() {
   arduboy.clear();
 
   arduboy.drawFastHLine(0, 10, WIDTH);
-  arduboy.drawFastHLine(0, 32, 64);
-  arduboy.drawFastHLine(0, 45, 64);
-  arduboy.drawLine(71, 32, 79, 16, WHITE);
-  arduboy.drawLine(71, 45, 79, 61, WHITE);
+  arduboy.drawFastHLine(0, 32, 65);
+  arduboy.drawFastHLine(0, 45, 65);
+  arduboy.drawLine(65, 32, 69, 16, WHITE);
+  arduboy.drawLine(65, 45, 69, 61, WHITE);
 
   font4x6.setCursor(2, 0);
   font4x6.print(F("Location "));
@@ -164,8 +164,8 @@ void loop() {
       font4x6.print(F("Orig "));
       printDec(origValue);
 
-      if (arduboy.justPressed(UP_BUTTON))     incValue();
-      if (arduboy.justPressed(DOWN_BUTTON))   decValue();
+      if (arduboy.pressed(UP_BUTTON))         incValue();
+      if (arduboy.pressed(DOWN_BUTTON))       decValue();
       if (arduboy.justPressed(A_BUTTON))      mode = EditMode::None;
       break;
 
