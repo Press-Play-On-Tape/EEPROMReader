@@ -171,7 +171,7 @@ void loop() {
 
   }
 
-  if (arduboy.everyXFrames(32)) { flash = !flash; }
+  if (arduboy.everyXFrames(16)) { flash = !flash; }
   arduboy.display();
 
 }
