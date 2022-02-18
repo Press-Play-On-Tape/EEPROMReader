@@ -3,6 +3,7 @@
 #include <Arduboy2.h>
 #include "src/Font4x6.h"
 #include "src/Splash.h"
+#include "src/Title.h"
 
 #ifdef USE_AVR_EEPROM
   #include <avr/eeprom.h>
@@ -14,11 +15,18 @@ Arduboy2Base arduboy;
 Sprites sprite;
 Font4x6 font4x6 = Font4x6(0);
 
-enum class EditMode : uint8_t {
 
+
+enum class GameState : uint8_t {
+  Splash,
+  Title,
+  Edit
+};
+
+
+enum class EditMode : uint8_t {
   None,
   Edit
-
 };
 
 char text1[8];
@@ -29,8 +37,17 @@ EditMode mode = EditMode::None;
 
 int16_t eepromLocation = EEPROM_STORAGE_SPACE_START;
 
-uint8_t gameState = 0;
+GameState gameState = GameState::Splash;
 
+struct HexStruct {
+  uint8_t x;
+  int8_t y;
+  uint8_t index;
+  uint8_t speed;
+};
+
+
+HexStruct hexes[10];
 
 //------------------------------------------------------------------------------
 //  Setup 
@@ -44,6 +61,15 @@ void setup() {
   arduboy.systemButtons();
   arduboy.clear();
   arduboy.setFrameRate(15);
+
+  for (uint8_t i = 0; i < 10; i++) {
+
+    hexes[i].x = 2 + (i * 10);
+    hexes[i].y = random(-128, -8);
+    hexes[i].index = random(0, 6);
+    hexes[i].speed = random(1, 4);
+
+  }
 
 }
 
@@ -64,11 +90,15 @@ void loop() {
 
   switch (gameState) {
 
-    case 0:
+    case GameState::Splash:
       splashScreen();
       break;
 
-    case 1:
+    case GameState::Title:
+      titleScreen();
+      break;
+
+    case GameState::Edit:
       loop_Editor();
       break;
 
@@ -288,7 +318,7 @@ void splashScreen() {
 
     if (arduboy.justPressed(A_BUTTON) || arduboy.justPressed(B_BUTTON)) {
         
-        gameState = 1; 
+        gameState = GameState::Title; 
 
     }
 
@@ -301,7 +331,7 @@ void splashScreen() {
         case 4 ... 7:
             y = 30; // Move pixel down to position 2
             /*-fallthrough*/
-            
+
         case 0 ... 3:
             Sprites::drawOverwrite(91, 25, Images::PPOT_Arrow, 0); // Flash 'Play' arrow
             break;
@@ -322,3 +352,33 @@ void splashScreen() {
     }
 
 }
+
+
+
+
+void titleScreen() { 
+
+    if (arduboy.justPressed(A_BUTTON) || arduboy.justPressed(B_BUTTON)) {
+        
+        gameState = GameState::Edit; 
+
+    }
+
+
+    for (uint8_t i = 0; i < 10; i++) {
+
+      Sprites::drawExternalMask(hexes[i].x, hexes[i].y, Images::Hex, Images::Hex_Mask, hexes[i].index, 0);
+
+
+       hexes[i].y = hexes[i].y + hexes[i].speed;
+
+       if (hexes[i].y > 64) {
+         hexes[i].y = random(-100, -8);
+         hexes[i].index = random(0, 6);
+         hexes[i].speed = random(1, 4);
+       }
+    }
+
+    Sprites::drawExternalMask(0, 15, Images::TitleImage, Images::TitleImage_Mask, 0, 0);
+
+};
