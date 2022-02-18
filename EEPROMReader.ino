@@ -2,6 +2,7 @@
 
 #include <Arduboy2.h>
 #include "src/Font4x6.h"
+#include "src/Splash.h"
 
 #ifdef USE_AVR_EEPROM
   #include <avr/eeprom.h>
@@ -28,6 +29,8 @@ EditMode mode = EditMode::None;
 
 int16_t eepromLocation = EEPROM_STORAGE_SPACE_START;
 
+uint8_t gameState = 0;
+
 
 //------------------------------------------------------------------------------
 //  Setup 
@@ -53,11 +56,37 @@ void setup() {
 #define SPACING_Y 8
 
 void loop() {
-  
+    
   if (!(arduboy.nextFrame())) return;
-  arduboy.pollButtons();
 
+  arduboy.pollButtons();
   arduboy.clear();
+
+  switch (gameState) {
+
+    case 0:
+      splashScreen();
+      break;
+
+    case 1:
+      loop_Editor();
+      break;
+
+  }
+
+  arduboy.display();
+
+}
+
+
+//------------------------------------------------------------------------------
+//  Loop away!
+//------------------------------------------------------------------------------
+
+#define SPACING_X 13
+#define SPACING_Y 8
+
+void loop_Editor() {
 
   arduboy.drawFastHLine(0, 10, WIDTH);
   arduboy.drawFastHLine(0, 32, 65);
@@ -172,7 +201,6 @@ void loop() {
   }
 
   if (arduboy.everyXFrames(20)) { flash = !flash; }
-  arduboy.display();
 
 }
 
@@ -252,4 +280,45 @@ void decValue() {
     EEPROM.update(eepromLocation, data - 1);
   #endif
   
+}
+
+
+
+void splashScreen() { 
+
+    if (arduboy.justPressed(A_BUTTON) || arduboy.justPressed(B_BUTTON)) {
+        
+        gameState = 1; 
+
+    }
+
+
+    Sprites::drawOverwrite(32, 17, Images::PPOT, 0);
+
+    uint8_t y = 17; // Default pixel position 1 is hidden in the top line of the image
+    switch (arduboy.frameCount % 16) {
+
+        case 4 ... 7:
+            y = 30; // Move pixel down to position 2
+            /*-fallthrough*/
+            
+        case 0 ... 3:
+            Sprites::drawOverwrite(91, 25, Images::PPOT_Arrow, 0); // Flash 'Play' arrow
+            break;
+
+        case 8 ... 11:
+            y = 31; // Move pixel down to position 3
+            break;
+
+        default: // 36 ... 47:
+            y = 32; // Move pixel down to position 4
+            break;
+
+    }
+
+    arduboy.drawPixel(52, y, WHITE); // Falling pixel represents the tape spooling
+    if (y % 2 == 0) { // On even steps of pixel movement, update the spindle image
+        Sprites::drawOverwrite(45, 28, Images::PPOT_Spindle, 0);
+    }
+
 }
